@@ -7,6 +7,8 @@ import { CourseSyncErrorsAndWarnings } from '../../components/SyncErrorsAndWarni
 import { type CourseInstance } from '../../lib/db-types.js';
 import { QuestionsPageData } from '../../models/questions.js';
 
+import { assetPath } from '../../lib/assets.js';
+
 export const QuestionsPage = ({
   questions,
   course_instances,
@@ -25,6 +27,8 @@ export const QuestionsPage = ({
     <html lang="en">
       <head>
         ${HeadContents({ resLocals })} ${QuestionsTableHead()}
+        <script src="${assetPath('javascripts/assessmentBuilder.js')}"></script>
+        <link rel="stylesheet" href="${assetPath('stylesheets/assessmentBuilder.css')}">
       </head>
 
       <body>
