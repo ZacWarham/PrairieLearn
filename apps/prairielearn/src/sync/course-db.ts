@@ -411,11 +411,15 @@ export async function loadFullCourse(
       const endDate = rule.endDate ? parseAllowAccessDate(rule.endDate) : null;
       return endDate && isPast(endDate);
     });
+    
+    const endsRules = courseInstance.data?.allowAccess ?? [];
+    const courseInstanceEnds = endsRules.map((access) => access.endDate)[0];
 
     const assessments = await loadAssessments(
       courseDir,
       courseInstanceId,
       courseInstanceExpired,
+      courseInstanceEnds,
       questions,
     );
 
@@ -1044,6 +1048,7 @@ async function validateAssessment(
   assessment: Assessment,
   questions: Record<string, InfoFile<Question>>,
   courseInstanceExpired: boolean,
+  courseInstanceEnds: string,
 ): Promise<{ warnings: string[]; errors: string[] }> {
   const warnings: string[] = [];
   const errors: string[] = [];
@@ -1084,6 +1089,14 @@ async function validateAssessment(
 
       if (rule.examUuid && rule.mode === 'Public') {
         warnings.push('Invalid allowAccess rule: examUuid cannot be used with "mode": "Public"');
+      }
+    });
+  }
+  
+  if (courseInstanceEnds != null) {
+    (assessment.allowAccess || []).forEach((rule) => {
+      if (isAfter(rule.endDate, courseInstanceEnds)) {
+        warnings.push('Assessment will occur outside of course visibility')
       }
     });
   }
@@ -1418,10 +1431,7 @@ export async function loadCourseInstances(
  * Loads all assessments in a course instance.
  */
 export async function loadAssessments(
-  coursePath: string,
-  courseInstance: string,
-  courseInstanceExpired: boolean,
-  questions: Record<string, InfoFile<Question>>,
+coursePath: string, courseInstance: string, courseInstanceExpired: boolean, courseInstanceEnds: string, questions: Record<string, InfoFile<Question>>,
 ): Promise<Record<string, InfoFile<Assessment>>> {
   const assessmentsPath = path.join('courseInstances', courseInstance, 'assessments');
   const assessments = await loadInfoForDirectory({
@@ -1431,7 +1441,7 @@ export async function loadAssessments(
     defaultInfo: DEFAULT_ASSESSMENT_INFO,
     schema: schemas.infoAssessment,
     validate: (assessment: Assessment) =>
-      validateAssessment(assessment, questions, courseInstanceExpired),
+      validateAssessment(assessment, questions, courseInstanceExpired, courseInstanceEnds),
     recursive: true,
   });
   checkDuplicateUUIDs(
