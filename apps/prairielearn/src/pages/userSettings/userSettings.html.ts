@@ -28,6 +28,7 @@ export function UserSettings({
   isExamMode,
   showEnhancedNavigationToggle,
   enhancedNavigationEnabled,
+  showHiddenFiles,
   resLocals,
 }: {
   authn_user: User;
@@ -39,6 +40,7 @@ export function UserSettings({
   isExamMode: boolean;
   showEnhancedNavigationToggle: boolean;
   enhancedNavigationEnabled: boolean;
+  showHiddenFiles: boolean;
   resLocals: Record<string, any>;
 }) {
   return PageLayout({
@@ -188,6 +190,46 @@ export function UserSettings({
           Access tokens can be used to access the PrairieLearn API. Be sure to keep them secure.
         </div>
       </div>
+
+      <form method="POST">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white d-flex align-items-center">
+            <h2>User options</h2>
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex align-items-center">
+              <div class="form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  name="hidden_files"
+                  value="0"
+                  id="hidden_files_toggle"
+                  ${showHiddenFiles ? 'checked' : ''}
+                />
+                <label class="form-check-label d-flex align-items-center" for="hidden_files_toggle">
+                  Show Hidden Files
+                  <span class="badge rounded-pill text-bg-warning ms-2" aria-hidden="true">
+                    Alpha
+                  </span>
+                </label>
+                <div class="small text-muted">Make hidden files viewable when browsing files.</div>
+              </div>
+            </li>
+          </ul>
+          <div class="card-footer">
+            <input type="hidden" name="__csrf_token" value="${resLocals.__csrf_token}" />
+            <button
+              type="submit"
+              class="btn btn-sm btn-primary"
+              name="__action"
+              value="toggle_hidden"
+            >
+              Save changes
+            </button>
+          </div>
+        </div>
+      </form>
 
       <div class="card mb-4">
         <div class="card-header bg-primary text-white d-flex">

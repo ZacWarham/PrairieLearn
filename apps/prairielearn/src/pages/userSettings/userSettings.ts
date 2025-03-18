@@ -63,6 +63,9 @@ router.get(
     const enhancedNavigationEnabled = await features.enabled('enhanced-navigation', {
       user_id: authn_user.user_id,
     });
+    const showHiddenFiles = await features.enabled('hidden-files', {
+      user_id: authn_user.user_id,
+    });
 
     res.send(
       UserSettings({
@@ -75,6 +78,7 @@ router.get(
         isExamMode: mode !== 'Public',
         showEnhancedNavigationToggle,
         enhancedNavigationEnabled,
+        showHiddenFiles,
         resLocals: res.locals,
       }),
     );
@@ -96,6 +100,17 @@ router.post(
       }
 
       flash('success', 'Features updated successfully.');
+      res.redirect(req.originalUrl);
+    } else if (req.body.__action === 'toggle_hidden') {
+      const context = { user_id: res.locals.authn_user.user_id };
+
+      if (req.body.hidden_files) {
+        await features.enable('hidden-files', context);
+      } else {
+        await features.disable('hidden-files', context);
+      }
+
+      flash('success', 'User settings applied.');
       res.redirect(req.originalUrl);
     } else if (req.body.__action === 'token_generate') {
       const { mode } = await sqldb.callRow(

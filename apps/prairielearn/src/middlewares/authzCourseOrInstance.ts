@@ -119,6 +119,7 @@ export async function authzCourseOrInstance(req: Request, res: Response) {
     'enhanced-navigation',
     res.locals,
   );
+  res.locals.show_hidden_files = await features.enabledFromLocals('hidden-files', res.locals);
   res.locals.question_sharing_enabled = await features.enabledFromLocals(
     'question-sharing',
     res.locals,

@@ -15,6 +15,7 @@ const featureNames = [
   'enhanced-navigation-user-toggle',
   // Can be applied to any context.
   'enhanced-navigation',
+  'hidden-files',
 ] as const;
 
 const features = new FeatureManager(featureNames);

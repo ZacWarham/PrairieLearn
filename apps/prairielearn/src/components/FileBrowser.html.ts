@@ -104,15 +104,17 @@ function isHidden(item: string) {
 
 export async function browseDirectory({
   paths,
+  resLocals,
 }: {
   paths: InstructorFilePaths;
+  resLocals: Record<string, any>;
 }): Promise<DirectoryListings> {
   const filenames = await fs.readdir(paths.workingPath);
   const all_files = await async.mapLimit(
     filenames
       .sort()
       .map((name, index) => ({ name, index }))
-      .filter((f) => !isHidden(f.name)),
+      .filter((f) => (!resLocals.show_hidden_files ? !isHidden(f.name) : true)),
     3,
     async (file: { name: string; index: number }) => {
       const filepath = path.join(paths.workingPath, file.name);
@@ -249,7 +251,7 @@ export async function createFileBrowser({
       resLocals,
       paths,
       isFile: false,
-      directoryListings: await browseDirectory({ paths }),
+      directoryListings: await browseDirectory({ paths, resLocals }),
       isReadOnly,
     });
   } else if (stats.isFile()) {
