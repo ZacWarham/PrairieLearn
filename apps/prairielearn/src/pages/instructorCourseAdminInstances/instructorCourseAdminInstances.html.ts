@@ -10,9 +10,8 @@ import { PageLayout } from '../../components/PageLayout.html.js';
 import { CourseSyncErrorsAndWarnings } from '../../components/SyncErrorsAndWarnings.html.js';
 import { SyncProblemButton } from '../../components/SyncProblemButton.html.js';
 import { compiledScriptTag } from '../../lib/assets.js';
-import { type CourseInstanceAuthz } from '../../models/course-instances.js';
-
 import { config } from '../../lib/config.js';
+import { type CourseInstanceAuthz } from '../../models/course-instances.js';
 
 export type CourseInstanceAuthzRow = CourseInstanceAuthz & { enrollment_count?: number };
 
@@ -62,7 +61,7 @@ export function InstructorCourseAdminInstances({
         urlPrefix: resLocals.urlPrefix,
       })}
       ${CopyCourseInstanceModal({
-        resLocals: resLocals,
+        resLocals,
         instances: courseInstances,
       })}
       ${CreateCourseInstanceModal({
@@ -91,7 +90,7 @@ export function InstructorCourseAdminInstances({
                   >
                     <i class="fa fa-plus" aria-hidden="true"></i>
                     <span class="d-none d-sm-inline">Copy course instance</span>
-                  </button>            
+                  </button>
                   <button
                     type="button"
                     class="btn btn-sm btn-light"
@@ -280,43 +279,69 @@ function CopyCourseInstanceModal({
   resLocals: Record<string, any>;
   instances: CourseInstanceAuthzRow[];
 }) {
+  // The course copy form will POST to a different URL for each instance, so
+  // we need to generate a corresponding CSRF token for each one.
+  const instanceData = instances.map((row) => {
+    const copyUrl = `${resLocals.plainUrlPrefix}/course_instance/${row.id}/instructor/instance_admin/settings`;
 
-  const copyUrl = `${resLocals.plainUrlPrefix}/course_instance/1/instructor/instance_admin/settings`;
+    const csrfToken = generateSignedToken(
+      {
+        url: copyUrl,
+        authn_user_id: resLocals.authn_user.user_id,
+      },
+      config.secretKey,
+    );
 
-  const csrfToken = generateSignedToken(
-    {
-      url: copyUrl,
-      authn_user_id: resLocals.authn_user.user_id,
-    },
-    config.secretKey,
-  );
+    return { id: row.id, long_name: row.long_name, copyUrl, csrfToken };
+  });
 
   return Modal({
     id: 'copyCourseInstanceModal',
     title: 'Copy course instance',
     formMethod: 'POST',
-    formAction: `${resLocals.plainUrlPrefix}/course_instance/1/instructor/instance_admin/settings`,
+    formAction: instanceData[0]?.copyUrl,
+    formClass: 'js-copy-course-form',
     body: html`
-      <div class="mb-3">
-        ${instances.map((row) => {
+      <p>Select which course instance you would like to make a copy of.</p>
+      <select id="courseInstanceSelect" class="form-select" name="course" required>
+        ${instanceData.map((row, index) => {
           return html`
-            <input type="radio" 
-              id="${"course".concat(row.id)}" 
-              name="course" 
-              value=${row.id}
+            <option
+              value="${row.id}"
+              data-copy-url="${row.copyUrl}"
+              data-csrf-token="${row.csrfToken}"
+              ${index === 0 ? 'selected' : ''}
             >
-            <label for=${"course".concat(row.id)}>
               ${row.long_name}
-            </label>
+            </option>
           `;
         })}
-      </div>
+      </select>
     `,
     footer: html`
       <input type="hidden" name="__action" value="copy_course_instance" />
-      <input type="hidden" name="__csrf_token" value="${csrfToken}" />
+      <input
+        type="hidden"
+        id="csrfTokenInput"
+        name="__csrf_token"
+        value="${instanceData[0]?.csrfToken}"
+      />
       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
       <button type="submit" id="copy_course_instance_button" class="btn btn-primary">Copy</button>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const selectElement = document.getElementById('courseInstanceSelect');
+          const csrfTokenInput = document.getElementById('csrfTokenInput');
+          const form = document.querySelector('.js-copy-course-form');
+
+          selectElement.addEventListener('change', function () {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            form.action = selectedOption.getAttribute('data-copy-url');
+            csrfTokenInput.value = selectedOption.getAttribute('data-csrf-token');
+          });
+        });
+      </script>
     `,
   });
 }
