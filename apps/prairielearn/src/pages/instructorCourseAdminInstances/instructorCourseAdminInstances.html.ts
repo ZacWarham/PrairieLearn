@@ -3,6 +3,7 @@ import { Temporal } from '@js-temporal/polyfill';
 import { formatDateYMDHM } from '@prairielearn/formatter';
 import { html } from '@prairielearn/html';
 import { run } from '@prairielearn/run';
+import { generateSignedToken } from '@prairielearn/signed-token';
 
 import { Modal } from '../../components/Modal.html.js';
 import { PageLayout } from '../../components/PageLayout.html.js';
@@ -10,6 +11,8 @@ import { CourseSyncErrorsAndWarnings } from '../../components/SyncErrorsAndWarni
 import { SyncProblemButton } from '../../components/SyncProblemButton.html.js';
 import { compiledScriptTag } from '../../lib/assets.js';
 import { type CourseInstanceAuthz } from '../../models/course-instances.js';
+
+import { config } from '../../lib/config.js';
 
 export type CourseInstanceAuthzRow = CourseInstanceAuthz & { enrollment_count?: number };
 
@@ -58,6 +61,10 @@ export function InstructorCourseAdminInstances({
         course: resLocals.course,
         urlPrefix: resLocals.urlPrefix,
       })}
+      ${CopyCourseInstanceModal({
+        resLocals: resLocals,
+        instances: courseInstances,
+      })}
       ${CreateCourseInstanceModal({
         courseShortName: resLocals.course.short_name,
         csrfToken: resLocals.__csrf_token,
@@ -75,15 +82,26 @@ export function InstructorCourseAdminInstances({
           !resLocals.needToSync &&
           courseInstances.length > 0
             ? html`
-                <button
-                  type="button"
-                  class="btn btn-sm btn-light"
-                  data-bs-toggle="modal"
-                  data-bs-target="#createCourseInstanceModal"
-                >
-                  <i class="fa fa-plus" aria-hidden="true"></i>
-                  <span class="d-none d-sm-inline">Add course instance</span>
-                </button>
+                <div class="col-auto">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-light"
+                    data-bs-toggle="modal"
+                    data-bs-target="#copyCourseInstanceModal"
+                  >
+                    <i class="fa fa-plus" aria-hidden="true"></i>
+                    <span class="d-none d-sm-inline">Copy course instance</span>
+                  </button>            
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-light"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createCourseInstanceModal"
+                  >
+                    <i class="fa fa-plus" aria-hidden="true"></i>
+                    <span class="d-none d-sm-inline">Add course instance</span>
+                  </button>
+                </div>
               `
             : ''}
         </div>
@@ -253,6 +271,54 @@ function PopoverEndDate() {
       >.
     </p>
   `.toString();
+}
+
+function CopyCourseInstanceModal({
+  resLocals,
+  instances,
+}: {
+  resLocals: Record<string, any>;
+  instances: CourseInstanceAuthzRow[];
+}) {
+
+  const copyUrl = `${resLocals.plainUrlPrefix}/course_instance/1/instructor/instance_admin/settings`;
+
+  const csrfToken = generateSignedToken(
+    {
+      url: copyUrl,
+      authn_user_id: resLocals.authn_user.user_id,
+    },
+    config.secretKey,
+  );
+
+  return Modal({
+    id: 'copyCourseInstanceModal',
+    title: 'Copy course instance',
+    formMethod: 'POST',
+    formAction: `${resLocals.plainUrlPrefix}/course_instance/1/instructor/instance_admin/settings`,
+    body: html`
+      <div class="mb-3">
+        ${instances.map((row) => {
+          return html`
+            <input type="radio" 
+              id="${"course".concat(row.id)}" 
+              name="course" 
+              value=${row.id}
+            >
+            <label for=${"course".concat(row.id)}>
+              ${row.long_name}
+            </label>
+          `;
+        })}
+      </div>
+    `,
+    footer: html`
+      <input type="hidden" name="__action" value="copy_course_instance" />
+      <input type="hidden" name="__csrf_token" value="${csrfToken}" />
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="submit" id="copy_course_instance_button" class="btn btn-primary">Copy</button>
+    `,
+  });
 }
 
 function CreateCourseInstanceModal({
