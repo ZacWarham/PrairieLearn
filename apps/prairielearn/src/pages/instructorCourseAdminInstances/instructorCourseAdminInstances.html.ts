@@ -88,7 +88,7 @@ export function InstructorCourseAdminInstances({
                     data-bs-toggle="modal"
                     data-bs-target="#copyCourseInstanceModal"
                   >
-                    <i class="fa fa-plus" aria-hidden="true"></i>
+                    <i class="fa-regular fa-clone" aria-hidden="true"></i>
                     <span class="d-none d-sm-inline">Copy course instance</span>
                   </button>
                   <button
