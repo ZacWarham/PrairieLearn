@@ -29,6 +29,7 @@ export function UserSettings({
   showEnhancedNavigationToggle,
   enhancedNavigationEnabled,
   resLocals,
+  scorebarRounding,
 }: {
   authn_user: User;
   authn_institution: Institution;
@@ -40,6 +41,7 @@ export function UserSettings({
   showEnhancedNavigationToggle: boolean;
   enhancedNavigationEnabled: boolean;
   resLocals: Record<string, any>;
+  scorebarRounding: boolean;
 }) {
   return PageLayout({
     resLocals,
@@ -188,6 +190,46 @@ export function UserSettings({
           Access tokens can be used to access the PrairieLearn API. Be sure to keep them secure.
         </div>
       </div>
+
+      <form method="POST">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white d-flex align-items-center">
+            <h2>User options</h2>
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex align-items-center">
+              <div class="form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  name="scorebar_rounding"
+                  value="0"
+                  id="scorebar_rounding_toggle"
+                  ${scorebarRounding ? 'checked' : ''}
+                />
+                <label class="form-check-label d-flex align-items-center" for="scorebar_rounding_toggle">
+                  Scorebar Rounding
+                  <span class="badge rounded-pill text-bg-warning ms-2" aria-hidden="true">
+                    Alpha
+                  </span>
+                </label>
+                <div class="small text-muted">Set scorebar rounding to two decimal places.</div>
+              </div>
+            </li>
+          </ul>
+          <div class="card-footer">
+            <input type="hidden" name="__csrf_token" value="${resLocals.__csrf_token}" />
+            <button
+              type="submit"
+              class="btn btn-sm btn-primary"
+              name="__action"
+              value="scorebar_rounding"
+            >
+              Save changes
+            </button>
+          </div>
+        </div>
+      </form>
 
       <div class="card mb-4">
         <div class="card-header bg-primary text-white d-flex">

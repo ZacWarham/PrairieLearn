@@ -63,6 +63,9 @@ router.get(
     const enhancedNavigationEnabled = await features.enabled('enhanced-navigation', {
       user_id: authn_user.user_id,
     });
+    const scorebarRounding = await features.enabled('scorebar-rounding', {
+      user_id: authn_user.user_id,
+    });
 
     res.send(
       UserSettings({
@@ -75,6 +78,7 @@ router.get(
         isExamMode: mode !== 'Public',
         showEnhancedNavigationToggle,
         enhancedNavigationEnabled,
+        scorebarRounding,
         resLocals: res.locals,
       }),
     );
@@ -97,6 +101,18 @@ router.post(
 
       flash('success', 'Features updated successfully.');
       res.redirect(req.originalUrl);
+    } else if (req.body.__action === 'scorebar_rounding') {
+      const context = { user_id: res.locals.authn_user.user_id };
+
+      if (req.body.scorebar_rounding) {
+        await features.enable('scorebar-rounding', context);
+      } else {
+        await features.disable('scorebar-rounding', context);
+      }
+
+      flash('success', 'User scorebar applied.');
+      res.redirect(req.originalUrl);
+    
     } else if (req.body.__action === 'token_generate') {
       const { mode } = await ipToMode({
         ip: req.ip,

@@ -15,6 +15,7 @@ const featureNames = [
   'enhanced-navigation-user-toggle',
   // Can be applied to any context.
   'enhanced-navigation',
+  'scorebar-rounding',
 ] as const;
 
 const features = new FeatureManager(featureNames);

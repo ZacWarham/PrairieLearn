@@ -119,6 +119,8 @@ export async function authzCourseOrInstance(req: Request, res: Response) {
     res.locals.authz_data.has_student_access = permissions_course_instance.has_student_access;
   }
 
+  res.locals.set_scorebar_rounding = await features.enabledFromLocals('scorebar-rounding', res.locals);
+
   res.locals.has_enhanced_navigation = await features.enabledFromLocals(
     'enhanced-navigation',
     res.locals,
