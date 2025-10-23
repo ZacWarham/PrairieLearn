@@ -158,7 +158,7 @@ Returns the status and output of the sync job.
 GET /pl/api/v1/course/:course_id/staff
 ```
 
-#### Add staff to a course
+#### Add or update staff in a course
 
 ```text
 POST /pl/api/v1/course/:course_id/staff
@@ -170,19 +170,7 @@ Example body
 { "uid": "dev@example.com", "course_role": "Previewer" }
 ```
 
-#### Change existing staff access level in a course
-
-```text
-PUT /pl/api/v1/course/:course_id/staff
-```
-
-Example body
-
-```json
-{ "uid": "dev@example.com", "course_role": "Editor" }
-```
-
-#### Give student data access to a course instance
+#### Give or update student data access to a course instance
 
 ```text
 POST /pl/api/v1/course/:course_id/staff/course_instance/:course_instance_id
@@ -192,18 +180,6 @@ Example body
 
 ```json
 { "uid": "dev@example.com", "course_instance_role": "Student Data Viewer" }
-```
-
-#### Change existing student data access level in a course instance
-
-```text
-PUT /pl/api/v1/course/:course_id/staff/course_instance/:course_instance_id
-```
-
-Example body
-
-```json
-{ "uid": "dev@example.com", "course_instance_role": "Student Data Editor" }
 ```
 
 #### Remove student data access in a course instance
