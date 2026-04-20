@@ -218,7 +218,8 @@ export function TimeLimitEditForm({
       (form.action === 'set_total' ||
         form.action === 'set_rem' ||
         form.action === 'add' ||
-        form.action === 'subtract') ? (
+        form.action === 'subtract') &&
+      form.time_add ? (
         <p>Proposed closing time: {proposedClosingTime()}</p>
       ) : null}
       <p>
