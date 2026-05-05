@@ -91,6 +91,7 @@ export function TimeLimitEditForm({
 
   function proposedClosingTime() {
     const totalTime = Math.round(row.total_time_sec);
+    console.log(form.time_add);
 
     let startDate = Temporal.Instant.from(row.date).toZonedDateTimeISO(timezone);
     if (form.action === 'set_total') {
